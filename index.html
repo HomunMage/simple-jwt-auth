@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login Page</title>
+    <script src="https://cdn.jsdelivr.net/npm/vue@2"></script>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+</head>
+<body>
+    <div id="app">
+        <h2>Login</h2>
+        <form @submit.prevent="login">
+            <div>
+                <label for="username">Username:</label>
+                <input type="text" id="username" v-model="username" required>
+            </div>
+            <div>
+                <label for="password">Password:</label>
+                <input type="password" id="password" v-model="password" required>
+            </div>
+            <button type="submit">Login</button>
+        </form>
+        <p>{{ message }}</p>
+    </div>
+
+    <script>
+        new Vue({
+            el: '#app',
+            data: {
+                username: '',
+                password: '',
+                message: ''
+            },
+            methods: {
+                login() {
+                    axios.post('http://localhost:11567/login', {
+                        username: this.username,
+                        password: this.password
+                    })
+                    .then(response => {
+                        if (response.data.success) {
+                            this.message = 'Login successful!';
+                        } else {
+                            this.message = 'Login failed: ' + response.data.message;
+                        }
+                    })
+                    .catch(error => {
+                        this.message = 'An error occurred: ' + error;
+                    });
+                }
+            }
+        });
+    </script>
+</body>
+</html>
