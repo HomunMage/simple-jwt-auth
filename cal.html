@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cal Page</title>
+    <script src="https://cdn.jsdelivr.net/npm/vue@2"></script>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+</head>
+<body>
+    <div id="app">
+        <h2>Welcome to the Cal Page</h2>
+        <p>{{ message }}</p>
+        <button @click="logout">Logout</button>
+    </div>
+
+    <script>
+        new Vue({
+            el: '#app',
+            data: {
+                message: ''
+            },
+            methods: {
+                checkSession() {
+                    const token = localStorage.getItem('token');
+                    if (token) {
+                        axios.get('http://localhost:11567/protected', {
+                            headers: {
+                                'Authorization': `Bearer ${token}`
+                            }
+                        })
+                        .then(response => {
+                            if (response.data.success) {
+                                this.message = response.data.message;
+                            } else {
+                                this.redirectToLogin();
+                            }
+                        })
+                        .catch(() => {
+                            this.redirectToLogin();
+                        });
+                    } else {
+                        this.redirectToLogin();
+                    }
+                },
+                redirectToLogin() {
+                    localStorage.removeItem('token');
+                    window.location.href = 'login.html';
+                },
+                logout() {
+                    localStorage.removeItem('token');
+                    this.redirectToLogin();
+                }
+            },
+            mounted() {
+                this.checkSession();
+            }
+        });
+    </script>
+</body>
+</html>

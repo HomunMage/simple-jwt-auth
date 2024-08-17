@@ -40,7 +40,8 @@
                     })
                     .then(response => {
                         if (response.data.success) {
-                            this.message = 'Login successful!';
+                            localStorage.setItem('token', response.data.token); // Store the token
+                            window.location.href = 'cal.html'; // Redirect to cal.html
                         } else {
                             this.message = 'Login failed: ' + response.data.message;
                         }
@@ -48,7 +49,16 @@
                     .catch(error => {
                         this.message = 'An error occurred: ' + error;
                     });
+                },
+                checkSession() {
+                    const token = localStorage.getItem('token');
+                    if (token) {
+                        window.location.href = 'cal.html'; // If already logged in, redirect to cal.html
+                    }
                 }
+            },
+            mounted() {
+                this.checkSession(); // Automatically check session on page load
             }
         });
     </script>
