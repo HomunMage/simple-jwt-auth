@@ -1,67 +1,132 @@
 // Demo/home.tsx
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 
 const HomePage: React.FC = () => {
-    const [message, setMessage] = useState<string | null>(null);
+    const [username, setUsername] = useState<string>('');
+    const [password, setPassword] = useState<string>('');
     const [error, setError] = useState<string | null>(null);
-    const [isLoading, setIsLoading] = useState(true); // Add a loading state
+    const [isLoading, setIsLoading] = useState(false);
+    const [accessToken, setAccessToken] = useState<string | null>(null);
+    const [protectedMessage, setProtectedMessage] = useState<string | null>(null);
 
-    useEffect(() => {
-        const fetchData = async () => {
-            setIsLoading(true); // Start loading
-            try {
-                const SERVER_URL = import.meta.env.VITE_BACKEND_URL;
+    const SERVER_URL = import.meta.env.VITE_BACKEND_URL;
 
-                if (!SERVER_URL) {
-                    setError("VITE_BACKEND_URL is not defined in your environment variables.");
-                    return;
-                }
+    const login = async () => {
+        setIsLoading(true);
+        setError(null);
+        try {
+            const formData = new URLSearchParams();
+            formData.append('username', username);
+            formData.append('password', password);
 
-                const response = await fetch(`${SERVER_URL}/hello/`);
+            const response = await fetch(`${SERVER_URL}/auth/token`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: formData.toString(),
+            });
 
-                if (!response.ok) {
-                    throw new Error(`HTTP error! Status: ${response.status}`);
-                }
-
-                const data = await response.json();
-                setMessage(data.message); // Assuming the backend returns { "message": "Hello World" }
-
-            } catch (err) {
-                setError(`Error fetching data: ${err}`);
-                if (err instanceof Error) {
-                    console.error(err.message); // Log the error for debugging
-                } else {
-                    console.error(err);
-                }
-
-            } finally {
-                setIsLoading(false); // Stop loading, regardless of success or failure
+            if (!response.ok) {
+                throw new Error(`Login failed: ${response.status}`);
             }
-        };
 
-        fetchData();
-    }, []); // Empty dependency array ensures this effect runs only once, on mount
+            const data = await response.json();
+            setAccessToken(data.access_token);
+            console.log("Access Token:", data.access_token);
+
+        } catch (err) {
+            setError(`Login Error: ${err}`);
+            console.error(err);
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    const fetchProtectedData = async () => {
+        setIsLoading(true);
+        setError(null);
+        try {
+            if (!accessToken) {
+                throw new Error("No access token available. Please log in.");
+            }
+
+            const response = await fetch(`${SERVER_URL}/auth/protected`, {
+                method: 'GET',
+                headers: {
+                    'Authorization': `Bearer ${accessToken}`,
+                },
+            });
+
+            if (!response.ok) {
+                throw new Error(`Failed to fetch protected data: ${response.status}`);
+            }
+
+            const data = await response.json();
+            setProtectedMessage(data.message);
+            console.log("Protected Message:", data.message);
+
+        } catch (err) {
+            setError(`Protected Data Error: ${err}`);
+            console.error(err);
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    const handleUsernameChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+        setUsername(event.target.value);
+    };
+
+    const handlePasswordChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+        setPassword(event.target.value);
+    };
 
 
     return (
         <div>
             <h2>Welcome to the Demo Page!</h2>
+
             {error && (
                 <div style={{ color: 'red' }}>
                     Error: {error}
                 </div>
             )}
 
-            {isLoading && !error && (
+            {isLoading && (
                 <div>
-                    Waiting for backend...
+                    Loading...
                 </div>
             )}
 
-            {message && (
+            <label>
+                Username:
+                <input type="text" value={username} onChange={handleUsernameChange} />
+            </label>
+            <br />
+            <label>
+                Password:
+                <input type="password" value={password} onChange={handlePasswordChange} />
+            </label>
+            <br />
+
+            <button onClick={login} disabled={isLoading}>
+                {isLoading ? 'Logging in...' : 'Get Access Token'}
+            </button>
+
+            {accessToken && (
                 <div>
-                    Message from backend: {message}
+                    <strong>Access Token:</strong> <pre>{accessToken}</pre>
+                    <button onClick={fetchProtectedData} disabled={isLoading}>
+                        {isLoading ? 'Fetching...' : 'Get Protected Data'}
+                    </button>
+                </div>
+            )}
+
+            {protectedMessage && (
+                <div>
+                    <strong>Protected Message:</strong> {protectedMessage}
                 </div>
             )}
         </div>
