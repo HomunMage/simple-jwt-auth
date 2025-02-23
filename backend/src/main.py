@@ -12,6 +12,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from ServerTee import ServerTee
 from util import flush_print
+from jwt_auth import jwt_auth_router # Import the router
 
 # log name as today's date in YYYY-MM-DD format
 today_date = datetime.now().strftime("%Y-%m-%d")
@@ -37,6 +38,9 @@ app.add_middleware(
     allow_methods=["*"],  # Allows all HTTP methods (GET, POST, PUT, DELETE, etc.)
     allow_headers=["*"],  # Allows all headers
 )
+
+# Include the JWT authentication router
+app.include_router(jwt_auth_router)
 
 # Dictionary to store ProcessHandler instances per user
 handlers = {}
