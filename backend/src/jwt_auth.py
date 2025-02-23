@@ -2,6 +2,7 @@
 
 from datetime import datetime, timedelta
 from typing import Any, Dict
+import hashlib
 
 from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordRequestForm
@@ -11,7 +12,9 @@ from passlib.context import CryptContext
 from util import flush_print
 
 # Security settings
-SECRET_KEY = "YOUR_SECRET_KEY"  # Replace with a strong, randomly generated secret key
+# IMPORTANT:  Do NOT use this in production.  This is for demonstration only.
+# In production, you would want to store your secret key in an environment variable.
+
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 30
 
@@ -26,6 +29,17 @@ jwt_auth_router = APIRouter(prefix="/auth", tags=["authentication"])
 users = {
     "testuser": {"password": pwd_context.hash("testpassword")}
 }
+
+
+def get_daily_secret_key():
+    """Generates a daily secret key based on the current date."""
+    today = datetime.utcnow().date()
+    seed = str(today.toordinal())  # Use ordinal date as seed
+    # Hash the seed to create a more secure and consistently sized key.
+    hashed_seed = hashlib.sha256(seed.encode('utf-8')).hexdigest()
+    return hashed_seed
+
+SECRET_KEY = get_daily_secret_key()  # Generate the secret key
 
 
 def verify_password(plain_password: str, hashed_password: str) -> bool:
