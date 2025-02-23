@@ -10,6 +10,7 @@ from jose import JWTError, jwt
 from passlib.context import CryptContext
 
 from util import flush_print
+from mydb import MyDB
 
 # Security settings
 # IMPORTANT:  Do NOT use this in production.  This is for demonstration only.
@@ -25,10 +26,8 @@ pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 jwt_auth_router = APIRouter(prefix="/auth", tags=["authentication"])
 
 
-# Dummy user data (replace with database interaction in a real application)
-users = {
-    "testuser": {"password": pwd_context.hash("testpassword")}
-}
+# Initialize the database
+my_db = MyDB("workspace/db.json")  # Initialize MyDB
 
 
 def get_daily_secret_key():
@@ -61,9 +60,7 @@ def create_access_token(data: Dict[str, Any], expires_delta: timedelta | None = 
 
 async def get_user(username: str):
     """Retrieve user data based on username."""
-    if username in users:
-        return users[username]
-    return None
+    return my_db.get_user(username)
 
 
 @jwt_auth_router.post("/token")
