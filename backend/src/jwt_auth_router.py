@@ -3,7 +3,7 @@
 import configparser
 import os
 from datetime import timedelta
-from typing import Any, Dict
+from typing import Any, Dict, Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Security, status
 from fastapi.security import (HTTPAuthorizationCredentials, HTTPBearer,
@@ -44,23 +44,19 @@ async def get_user(username: str):
     """Retrieve user data based on username."""
     return my_db.get_user(username)
 
-async def get_username_from_token(token: str) -> str:
-    """Decode JWT token and return username."""
-    username = jwt_token_handler.verify_token(token)
-    if username is None:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid token",
-            headers={"WWW-Authenticate": "Bearer"},
-        )
-    return username
 
 async def get_current_user(credentials: HTTPAuthorizationCredentials = Security(http_bearer)):
     """Dependency to get the current user from the JWT token."""
     token = credentials.credentials
     logger("get_current_user: ", token)
-    username = await get_username_from_token(token)
+    username = jwt_token_handler.verify_token(token)
     logger("get_current_user: ", username)
+    if username is None:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid authentication credentials",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
     user = await get_user(username)
     logger("get_current_user: ", user)
     if user is None:
