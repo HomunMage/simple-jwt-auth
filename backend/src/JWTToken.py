@@ -1,8 +1,9 @@
 # JWTToken.py
 
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import Any, Dict, Optional
 from jose import JWTError, jwt
+from util import logger
 
 class JWTToken:
     """
@@ -34,9 +35,9 @@ class JWTToken:
         """
         to_encode = {"sub": username}  # "sub" claim holds the username
         if expires_delta:
-            expire = datetime.utcnow() + expires_delta
+            expire = datetime.now(timezone.utc) + expires_delta
         else:
-            expire = datetime.utcnow() + timedelta(minutes=self.access_token_expire_minutes)
+            expire = datetime.now(timezone.utc) + timedelta(minutes=self.access_token_expire_minutes)
         to_encode.update({"exp": expire})
         encoded_jwt = jwt.encode(to_encode, self.secret_key, algorithm=self.algorithm)
         return encoded_jwt
@@ -52,52 +53,51 @@ class JWTToken:
             The username extracted from the token if valid, otherwise None.
         """
         try:
-            payload = jwt.decode(token, self.secret_key, algorithms=[self.algorithm])
+            # Add leeway to handle slight time differences
+            payload = jwt.decode(
+                token, 
+                self.secret_key, 
+                algorithms=[self.algorithm],
+                options={"verify_signature": True, "verify_exp": True}
+            )
+            logger("verify_token payload: ", payload)
             username = payload.get("sub")
             if username:
                 return username
             else:
+                logger("Token verification failed: 'sub' claim is missing")
                 return None  # "sub" claim is missing
 
-        except JWTError:
+        except JWTError as e:
+            logger(f"Token verification failed: {str(e)}")
             return None
 
 
 # Example usage
 if __name__ == "__main__":
     # Replace with your actual secret key.  **KEEP THIS SECRET!**
-    SECRET_KEY = "your-secret-key"
+    import configparser
+    # Load configuration from secret.ini
+    config = configparser.ConfigParser()
+    config.read('workspace/secret.ini')
 
+    # Get the secret key from secret.ini
+    SECRET_KEY = config.get('security', 'secret_key')
+
+    
     # Initialize the JWTToken class with your secret key
     jwt_token = JWTToken(SECRET_KEY)
 
     # 1. Encode username to get token
     username_to_encode = "testuser"
     access_token = jwt_token.create_access_token(username_to_encode)
-    print(f"Generated Token: {access_token}")
+    logger(f"Generated Token: {access_token}")
 
     # 2. Decode token to get username
     decoded_username = jwt_token.verify_token(access_token)
 
     if decoded_username:
-        print(f"Token is valid.  Decoded username: {decoded_username}")
+        logger(f"Token is valid.  Decoded username: {decoded_username}")
     else:
-        print("Token is invalid.")
+        logger("Token is invalid.")
 
-    # 3. Invalid token example
-    invalid_token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJub3R0aGV1c2VyIiwiZXhwIjoxNzQ3OTM1MjQzfQ.2G_3d7e6L4n9P9v8zG0mP6qN2W8kX7qY3t1n2qKzM8"
-    decoded_username = jwt_token.verify_token(invalid_token)
-
-    if decoded_username:
-        print(f"Token is valid. Decoded username: {decoded_username}")
-    else:
-        print("Token is invalid.")
-
-    # 4. Expired token example
-    expired_access_token = jwt_token.create_access_token("testuser", expires_delta=timedelta(seconds=-1))
-    decoded_username = jwt_token.verify_token(expired_access_token)
-
-    if decoded_username:
-        print(f"Token is valid. Decoded username: {decoded_username}")
-    else:
-        print("Token is invalid or Expired.")

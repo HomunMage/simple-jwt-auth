@@ -25,7 +25,7 @@ config = configparser.ConfigParser()
 config.read('workspace/secret.ini')
 
 # Get the secret key from secret.ini
-SECRET_KEY = str(config.get('security', 'secret_key'))  # Ensure it's a string
+SECRET_KEY = config.get('security', 'secret_key')
 
 # Initialize JWTToken class
 jwt_token_handler = JWTToken(secret_key=SECRET_KEY)
