@@ -9,15 +9,14 @@ RUN apt update && apt install cron supervisor -y
 # Set working directory
 WORKDIR /app
 
+# Install dependencies
+COPY ./requirements.txt ./requirements.txt
+RUN pip install -r requirements.txt
+
 # Copy files to the /app directory
 COPY ./src/ ./src/
-COPY ./requirements.txt ./requirements.txt
 COPY ./daily.sh ./daily.sh
 RUN chmod +x /app/daily.sh
-
-
-# Install dependencies
-RUN pip install -r requirements.txt
 
 # Copy cron configuration
 COPY crontab /mycron

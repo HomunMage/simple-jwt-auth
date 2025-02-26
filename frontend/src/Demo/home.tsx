@@ -8,7 +8,7 @@ const HomePage: React.FC = () => {
     const [error, setError] = useState<string | null>(null);
     const [isLoading, setIsLoading] = useState(false);
     const [accessToken, setAccessToken] = useState<string | null>(null);
-    const [protectedMessage, setProtectedMessage] = useState<string | null>(null);
+    const [fileList, setFileList] = useState<string | null>(null);  // Changed state variable
 
     const SERVER_URL = import.meta.env.VITE_BACKEND_URL;
 
@@ -44,7 +44,7 @@ const HomePage: React.FC = () => {
         }
     };
 
-    const fetchProtectedData = async () => {
+    const fetchFileList = async () => {  // Changed function name
         setIsLoading(true);
         setError(null);
         try {
@@ -52,7 +52,7 @@ const HomePage: React.FC = () => {
                 throw new Error("No access token available. Please log in.");
             }
 
-            const response = await fetch(`${SERVER_URL}/auth/protected`, {
+            const response = await fetch(`${SERVER_URL}/auth/files`, {  // Changed URL
                 method: 'GET',
                 headers: {
                     'Authorization': `Bearer ${accessToken}`,
@@ -60,15 +60,15 @@ const HomePage: React.FC = () => {
             });
 
             if (!response.ok) {
-                throw new Error(`Failed to fetch protected data: ${response.status}`);
+                throw new Error(`Failed to fetch file list: ${response.status}`);
             }
 
-            const data = await response.json();
-            setProtectedMessage(data.message);
-            console.log("Protected Message:", data.message);
+            const data = await response.text(); // Expecting a string now
+            setFileList(data); // Update state with file list string
+            console.log("File List:", data);
 
         } catch (err) {
-            setError(`Protected Data Error: ${err}`);
+            setError(`File List Error: ${err}`);
             console.error(err);
         } finally {
             setIsLoading(false);
@@ -118,15 +118,15 @@ const HomePage: React.FC = () => {
             {accessToken && (
                 <div>
                     <strong>Access Token:</strong> <pre>{accessToken}</pre>
-                    <button onClick={fetchProtectedData} disabled={isLoading}>
-                        {isLoading ? 'Fetching...' : 'Get Protected Data'}
+                    <button onClick={fetchFileList} disabled={isLoading}> {/* Changed function call */}
+                        {isLoading ? 'Fetching...' : 'Get File List'}
                     </button>
                 </div>
             )}
 
-            {protectedMessage && (
+            {fileList && (  // Changed conditional rendering
                 <div>
-                    <strong>Protected Message:</strong> {protectedMessage}
+                    <strong>File List:</strong> {fileList}
                 </div>
             )}
         </div>

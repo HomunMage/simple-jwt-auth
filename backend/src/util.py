@@ -1,7 +1,7 @@
 import sys
 import os
 
-def flush_print(*args, **kwargs):
+def logger(*args, **kwargs):
     output = ""
     for arg in args:
       output += str(arg)
