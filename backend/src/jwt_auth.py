@@ -3,6 +3,7 @@
 from datetime import datetime, timedelta
 from typing import Any, Dict
 import hashlib
+import configparser
 
 from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordRequestForm
@@ -30,15 +31,12 @@ jwt_auth_router = APIRouter(prefix="/auth", tags=["authentication"])
 my_db = MyDB("workspace/db.json")  # Initialize MyDB
 
 
-def get_daily_secret_key():
-    """Generates a daily secret key based on the current date."""
-    today = datetime.utcnow().date()
-    seed = str(today.toordinal())  # Use ordinal date as seed
-    # Hash the seed to create a more secure and consistently sized key.
-    hashed_seed = hashlib.sha256(seed.encode('utf-8')).hexdigest()
-    return hashed_seed
+# Load configuration from secret.ini
+config = configparser.ConfigParser()
+config.read('workspace/secret.ini')
 
-SECRET_KEY = get_daily_secret_key()  # Generate the secret key
+# Get the secret key from secret.ini
+SECRET_KEY = config.get('security', 'secret_key')
 
 
 def verify_password(plain_password: str, hashed_password: str) -> bool:
