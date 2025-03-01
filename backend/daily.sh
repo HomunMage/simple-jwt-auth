@@ -1,3 +1,3 @@
 #!/bin/bash
-echo $(date +%H:%M:%S)
+date
 supervisorctl restart fastapi
