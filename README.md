@@ -1,4 +1,4 @@
-# Simple JWT Auth
+# Simple Template JWT Auth
 
 ## Backend
 
