@@ -1,0 +1,4 @@
+[submodule "auth"]
+	path = auth
+	url = ../tiny-jwt-auth-core
+
