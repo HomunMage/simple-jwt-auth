@@ -38,32 +38,10 @@ app.add_middleware(
     allow_headers=["*"],  # Allows all headers
 )
 
-# Include the JWT authentication router
-app.include_router(jwt_auth_router)
-
-# Dictionary to store ProcessHandler instances per user
-handlers = {}
-
-
 @app.get("/hello/")
 async def test_endpoint():
     logger("hello")
     return {"message": "Hello World"}
-
-# Example protected endpoint (requires authentication)
-@jwt_auth_router.get("/files")
-async def list_files(username: str):
-    """Endpoint to list files in the user's directory."""
-    username = current_user["username"]
-    user_dir = os.path.join("workspace", username)
-    logger("get files: ", username)
-    logger("get files: ", user_dir)
-    if not os.path.exists(user_dir):
-        return "Directory not found for this user."
-
-    try:
-        filenames = os.listdir(user_dir)
-        return ", ".join(filenames)  # Return as a comma-separated string
 
 # Catch-all route for unmatched GET requests
 @app.api_route("/{anypath:path}", methods=["GET"])
