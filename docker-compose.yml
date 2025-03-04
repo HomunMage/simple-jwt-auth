@@ -13,18 +13,32 @@ services:
       - shared-network
     command: npm run dev
 
+  auth:
+    build:
+      context: ./auth
+    container_name: tiny-auth
+    ports:
+      - "127.0.0.1:5000:5000"
+    volumes:
+      - ./auth/src/:/app/src/
+    environment:
+      - AUTH_PORT=5000
+      - BACKEND_PORT=6000
+    networks:
+      - shared-network
+      - app-network
+
   backend:
     build:
       context: ./backend
     container_name: tiny-backend
     ports:
-      - "127.0.0.1:5000:5000"
+      - "127.0.0.1:6000:6000"
     volumes:
       - ./backend/src/:/app/src/
     environment:
-      - BACKEND_PORT=5000
+      - BACKEND_PORT=6000
     networks:
-      - shared-network
       - app-network
 
 networks:
