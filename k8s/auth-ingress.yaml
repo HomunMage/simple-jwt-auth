@@ -1,8 +1,8 @@
-# backend-ingress.yaml
+# auth-ingress.yaml
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: ingress-backend
+  name: ingress-auth
   namespace: tiny-fullstack
   annotations:
     nginx.ingress.kubernetes.io/ssl-redirect: "true" # Optional: Redirect HTTP to HTTPS
@@ -25,6 +25,6 @@ spec:
         pathType: ImplementationSpecific
         backend:
           service:
-            name: backend-service
+            name: auth-service
             port:
               number: 5000

@@ -1,14 +1,14 @@
-# backend-service.yaml
+# auth-service.yaml
 apiVersion: v1
 kind: Service
 metadata:
-  name: backend-service
+  name: auth-service
   namespace: tiny-fullstack
 spec:
   selector:
-    app: backend
+    app: auth
   ports:
     - protocol: TCP
-      port: 6000
-      targetPort: 6000
+      port: 5000  # Service port
+      targetPort: 5000 # Container port
   type: ClusterIP # Important: Use ClusterIP

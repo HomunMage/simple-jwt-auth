@@ -19,10 +19,10 @@ spec:
         image: 127.0.0.1:7000/tiny-fullstack-backend:latest
         imagePullPolicy: Always  # Always or IfNotPresent if pushing to a registry
         ports:
-        - containerPort: 5000
+        - containerPort: 6000
         env:
           - name: BACKEND_PORT
-            value: "5000"
+            value: "6000"
 
         volumeMounts:
         - name: backend-src

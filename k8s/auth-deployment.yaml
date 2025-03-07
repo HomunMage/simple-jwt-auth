@@ -1,0 +1,35 @@
+#auth-deployment.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: auth-deployment
+  namespace: tiny-fullstack
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: auth
+  template:
+    metadata:
+      labels:
+        app: auth
+    spec:
+      containers:
+      - name: auth
+        image: 127.0.0.1:7000/tiny-fullstack-auth:latest
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 5000
+        env:
+        - name: AUTH_PORT
+          value: "5000"
+        - name: BACKEND_PORT
+          value: "6000"
+        volumeMounts:
+        - name: auth-source
+          mountPath: /app/src
+      volumes:
+      - name: auth-source
+        hostPath:
+          path: <path>/auth/src/ # ABSOLUTE PATH HERE
+          type: Directory
